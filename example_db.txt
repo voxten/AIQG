@@ -1,0 +1,19 @@
+CREATE DATABASE sales_db;
+USE sales_db;
+
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    price DECIMAL(10, 2)
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    product_id INT,
+    quantity INT,
+    order_date DATE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+INSERT INTO products VALUES (1, 'Laptop', 999.99), (2, 'Phone', 699.99);
+INSERT INTO orders VALUES (1, 1, 10, '2024-01-15'), (2, 2, 20, '2024-02-20');
