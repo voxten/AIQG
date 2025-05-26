@@ -1,5 +1,5 @@
 # txt to sql ai
-Download Anaconda and Ollama
+Download Anaconda, Ollama and XAMPP
 
 
 ## Anaconda
@@ -23,4 +23,4 @@ Download Anaconda and Ollama
 #### ``ollama serve``
 
 #### Start project
-#### ``streamlit run main.py``
+#### ``streamlit run app/main.py``
