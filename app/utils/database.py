@@ -25,7 +25,8 @@ def init_session_state():
         st.session_state.schema = ""
     if 'SUPPORTED_DB_TYPES' not in st.session_state:
         st.session_state.SUPPORTED_DB_TYPES = SUPPORTED_DB_TYPES
-
+    if 'generated_sql' not in st.session_state:
+        st.session_state.generated_sql = None
 
 def get_db_connection(db_type: str, host: str, port: int, user: str, password: str, database: str) -> Any:
     """Get or create a database connection"""
