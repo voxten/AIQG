@@ -28,6 +28,7 @@ def init_session_state():
     if 'generated_sql' not in st.session_state:
         st.session_state.generated_sql = None
 
+
 def get_db_connection(db_type: str, host: str, port: int, user: str, password: str, database: str) -> Any:
     """Get or create a database connection"""
     connection_key = f"{db_type}_{host}_{port}_{user}_{database}"

@@ -24,7 +24,7 @@ def generate_sql(user_query: str, schema: str) -> str:
     ### SQL Query:
     """
 
-    response = ollama.generate(model="sqlcoder:15b", prompt=prompt)
+    response = ollama.generate(model="sqlcoder", prompt=prompt)
     raw_sql = response["response"].strip()
     print("DEBUG RAW SQL FROM MODEL:")
     print(raw_sql)  # To help debug what the model returns
@@ -71,6 +71,8 @@ def extract_sql_from_response(response: str) -> str:
         raise ValueError("The response doesn't contain a valid SQL query")
 
     return sql
+
+
 def explain_query(sql: str, schema: str) -> str:
     """Explain SQL query"""
     explain_prompt = f"""
@@ -94,19 +96,3 @@ def prepare_results(columns: List[str], results: Any) -> Tuple[pd.DataFrame, str
     df = pd.DataFrame(results, columns=columns)
     csv = df.to_csv(index=False).encode('utf-8')
     return df, csv
-
-
-def clean_generated_sql(raw_sql: str) -> str:
-    cleaned = raw_sql.strip().strip('`').strip('"').strip("'")
-
-    # Simple safety check: look for known non-SQL patterns
-    forbidden_patterns = ["import ", "def ", "create_engine", "sqlalchemy", "print(", "input(", "while ", "try:"]
-    if any(pat in cleaned.lower() for pat in forbidden_patterns):
-        print("DEBUG: Model output was:", cleaned)  # log
-        raise ValueError("The model returned non-SQL code. Please try again.")
-
-    if not cleaned.endswith(";"):
-        cleaned += ";"
-
-    return cleaned
-
