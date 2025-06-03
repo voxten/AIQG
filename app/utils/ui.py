@@ -133,15 +133,24 @@ def show_natural_language_ui(conn_info):
     )
 
     if user_query:
-        with st.spinner("Generating SQL..."):
-            sql = generate_sql(user_query, st.session_state.schema)
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            generate_btn = st.button("🔧 Generate SQL", use_container_width=True)
+        with col2:
+            execute_btn = st.button("▶️ Execute Query", type="primary", use_container_width=True)
 
-        st.markdown("### Generated SQL")
-        st.code(sql, language="sql")
+        if generate_btn:
+            with st.spinner("Generating SQL..."):
+                sql = generate_sql(user_query, st.session_state.schema)
+                st.session_state.generated_sql = sql  # Store the generated SQL in session state
 
-        if st.button("▶️ Execute Query", type="primary"):
+        if 'generated_sql' in st.session_state:
+            st.markdown("### Generated SQL")
+            st.code(st.session_state.generated_sql, language="sql")
+
+        if execute_btn and 'generated_sql' in st.session_state:
             with st.spinner("Executing..."):
-                columns, results = run_sql(conn_info['conn'], sql, conn_info['type'])
+                columns, results = run_sql(conn_info['conn'], st.session_state.generated_sql, conn_info['type'])
 
             if columns:
                 st.success("Query executed successfully!")

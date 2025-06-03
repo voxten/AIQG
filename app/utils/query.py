@@ -6,20 +6,71 @@ from typing import List, Tuple, Any
 def generate_sql(user_query: str, schema: str) -> str:
     """Generate SQL from natural language"""
     prompt = f"""
-    You are a SQL expert. Convert this natural language to valid MySQL syntax query: 
-    Database Schema:
+    You are an expert SQL query generator for MySQL databases.
+
+    ### Instructions:
+    - Generate ONLY the SQL query that answers the user's question
+    - DO NOT include any explanations, comments, or additional text
+    - DO NOT wrap the SQL in markdown or code blocks
+    - DO NOT include any Python code or pseudocode
+    - The output must be a SINGLE, VALID MySQL query ending with semicolon
+
+    ### Database Schema:
     {schema}
-    Query: "{user_query}"
-    Rules:
-    - Use ONLY the tables/columns above.
-    - Return ONLY SQL, no explanations.
-    - Avoid `+` for concatenation (use `CONCAT()`).
-    - Don't use */ or ---------- on start of your answer
-    - Use `IFNULL()` instead of `COALESCE()` if needed.
-    - For dates, use `YYYY-MM-DD` format.
+
+    ### User Question:
+    {user_query}
+
+    ### SQL Query:
     """
+
     response = ollama.generate(model="sqlcoder", prompt=prompt)
-    return response["response"].strip()
+    raw_sql = response["response"].strip()
+    print("DEBUG RAW SQL FROM MODEL:")
+    print(raw_sql)  # To help debug what the model returns
+
+    # Extract SQL from the response
+    sql = extract_sql_from_response(raw_sql)
+    return sql
+
+
+def extract_sql_from_response(response: str) -> str:
+    """Extract clean SQL from model response"""
+    # Remove everything after the semicolon if there are additional explanations
+    if ';' in response:
+        response = response.split(';')[0] + ';'
+
+    # Remove common wrappers
+    response = response.strip()
+    if response.startswith("```sql"):
+        response = response[6:]
+    if response.startswith("```"):
+        response = response[3:]
+    if response.endswith("```"):
+        response = response[:-3]
+
+    # Split lines and remove empty lines and comments
+    lines = []
+    for line in response.split('\n'):
+        line = line.strip()
+        if not line or line.startswith('--') or line.startswith('#'):
+            continue
+        # Remove any trailing explanations
+        if ';' in line:
+            line = line.split(';')[0] + ';'
+        lines.append(line)
+
+    sql = ' '.join(lines).strip()
+
+    # Ensure it ends with semicolon
+    if not sql.endswith(';'):
+        sql += ';'
+
+    # Final validation
+    if not sql.lower().startswith(('select ', 'insert ', 'update ', 'delete ', 'with ')):
+        raise ValueError("The response doesn't contain a valid SQL query")
+
+    return sql
 
 
 def explain_query(sql: str, schema: str) -> str:
